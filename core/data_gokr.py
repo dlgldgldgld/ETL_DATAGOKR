@@ -5,12 +5,7 @@ import json
 from const import varient
 import xmltodict
 
-class DataGoKR :
-    def __init__(self):
-        self.lawd_cd = os.path.join(os.getcwd(), 'thirdparty', 'lawd_cd', 'lawd_cd.csv')
-        self.lawd_cd = open(self.lawd_cd, 'r')
-
-    def _getRTMSDataSvcAptTradeDev(
+def _getRTMSDataSvcAptTradeDev(
         servicekey : str, lawd : str, deal_ymd : str, 
         numOfRows : str, pageNo : str 
         ) :
@@ -21,24 +16,28 @@ class DataGoKR :
         content = json.dumps(content)
         content = json.loads(content)
         return content
+    
+def _getIndvdHousingPriceAttr(
+    servicekey : str, pnu : str, stdrYear : str, 
+    format : str, numOfRows : str, pageNo : str 
+    ) :
+    url = varient.HOUSING_PRICEATTR_URL
+    params ={'serviceKey' : servicekey, 'pnu' : pnu, 'stdrYear' : stdrYear, 'format' : format, 'numOfRows' : numOfRows, 'pageNo' : pageNo }
+    response = requests.get(url, params=params)
+    if format == 'json':
+        content = json.loads(response.content)
+    elif format == 'xml':
+        content = xmltodict.parse(response.content)
+        content = json.dumps(content)
+        content = json.loads(content)
+        content['response']['field'] = content['response'].pop('fields')['field']
+    return content
 
-    
-    def _getIndvdHousingPriceAttr(
-        servicekey : str, pnu : str, stdrYear : str, 
-        format : str, numOfRows : str, pageNo : str 
-        ) :
-        url = varient.HOUSING_PRICEATTR_URL
-        params ={'serviceKey' : servicekey, 'pnu' : pnu, 'stdrYear' : stdrYear, 'format' : format, 'numOfRows' : numOfRows, 'pageNo' : pageNo }
-        response = requests.get(url, params=params)
-        if format == 'json':
-            content = json.loads(response.content)
-        elif format == 'xml':
-            content = xmltodict.parse(response.content)
-            content = json.dumps(content)
-            content = json.loads(content)
-            content['response']['field'] = content['response'].pop('fields')['field']
-        return content
-    
+class DataGoKR :
+    def __init__(self):
+        self.lawd_cd = os.path.join(os.getcwd(), 'thirdparty', 'lawd_cd', 'lawd_cd.csv')
+        self.lawd_cd = open(self.lawd_cd, 'r')
+
     @classmethod
     def getIndvdHousingPriceAttr(
         cls, servicekey : str, pnu : str, 
@@ -49,10 +48,10 @@ class DataGoKR :
         if format == 'xml':
             main_key = "response"
 
-        t_cnt = cls._getIndvdHousingPriceAttr(servicekey, pnu, stdrYear, format, str(1), str(1))[main_key]['totalCount']
+        t_cnt = _getIndvdHousingPriceAttr(servicekey, pnu, stdrYear, format, str(1), str(1))[main_key]['totalCount']
         iter_cnt = ceil(int(t_cnt) / varient.REQUEST_RECORD )
         for pageNo in range(1, iter_cnt + 1):
-            content = cls._getIndvdHousingPriceAttr(servicekey, pnu, stdrYear, format, str(varient.REQUEST_RECORD), str(pageNo))[main_key]["field"]
+            content = _getIndvdHousingPriceAttr(servicekey, pnu, stdrYear, format, str(varient.REQUEST_RECORD), str(pageNo))[main_key]["field"]
             res.extend(content)
         return res
 
