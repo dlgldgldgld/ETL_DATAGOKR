@@ -49,10 +49,17 @@ def _getIndvdHousingPriceAttr(
 
 def _ValidationAptTradeDev( content : list ) :
     rows = []
+    if isinstance(content, dict):
+        content = [content]
+
     for row in content :
         new_row = dict()
         for col in varient.APT_TRADE_DEV:
-            val = row.setdefault(col, None)
+            try:
+                val = row.setdefault(col, None)
+            except AttributeError:
+                print(content)
+            
             new_row[col] = val
         rows.append(new_row)
     

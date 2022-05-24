@@ -35,7 +35,6 @@ def extract(**context):
         rows.extend(row)
         log = f'{stdrYear + stdrMonth}, {sido}, {sigun}, len = {str(len(row))}'
         logging.info(log)
-        break
 
     logging.info(csv_temp_path)
     with open(csv_temp_path, 'w', newline='') as w:
@@ -48,9 +47,7 @@ def extract(**context):
     return csv_temp_path
 
 def transform_load(**context):
-    stdrYear   = str(context['execution_date'].year) 
-    stdrMonth  = str(context['execution_date'].month)
-    stdrMonth  = stdrMonth.rjust(2, '0')
+    created_date = context['execution_date'].in_tz('Asia/Seoul').strftime('%Y%m%d')
     path = os.path.join(context['params']['result_path'] , 'trade_info.db')
     # db init
     conn = sqlite3.connect(path)
@@ -60,11 +57,12 @@ def transform_load(**context):
     csv_temp_path = context['ti'].xcom_pull(key='return_value', task_ids='extract')
     pd = read_csv(csv_temp_path, delimiter='\t')
     pd["거래금액"] = pd['거래금액'].transform(lambda x : int(x.replace(',' , '')))
+    pd.insert(0, 'created_date', created_date)
     pd = pd.drop_duplicates()
     
     # load into db
     logging.info('load into db')
-    pd.to_sql(stdrYear+stdrMonth + '_TRADE', conn, index=False, if_exists="replace")
+    pd.to_sql('TRADEINFO', conn, index=False, if_exists="append")
     return 
 
 with DAG( 
@@ -78,7 +76,7 @@ with DAG(
     },
     start_date=datetime(2021, 5, 1, 6, 0, 0),
     schedule_interval='0 6 L * *',
-    catchup = False,
+    catchup = True,
     tags = ['incremental update', 'life'],
     doc_md = '''
     ## APT_Trade_KOR.py
@@ -105,3 +103,5 @@ with DAG(
                   'result_path' : Variable.get("datagokr_output_path"),
                 },
         provide_context=True)
+
+    t1 >> t2
