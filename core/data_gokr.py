@@ -70,6 +70,14 @@ class DataGoKR :
 
         Returns:
             _type_: https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15057511의 response element (start at 6번째 "거래금액" column) list
+
+        Example:
+            ::
+
+              lawd_list = get_lawd.getlawdlist('부산광역시') 
+              rows = [] 
+              for lawd in lawd_list: 
+                rows.extend(DataGoKR.getRTMSDataSvcAptTradeDev(servicekey=context['servicekey'], lawd=lawd, deal_ymd='202204')) 
         """
         res = []
         t_cnt = _getRTMSDataSvcAptTradeDev(servicekey, lawd, deal_ymd, str(1), str(1))["totalCount"]
