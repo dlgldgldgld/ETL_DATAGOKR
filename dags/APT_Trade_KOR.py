@@ -39,7 +39,7 @@ def extract(**context):
 
     logging.info(csv_temp_path)
     with open(csv_temp_path, 'w', newline='') as w:
-        writer = csv.writer(w)
+        writer = csv.writer(w, delimiter='\t')
         writer.writerow(rows[0].keys())
         for row in rows:
             writer.writerow(row.values())
