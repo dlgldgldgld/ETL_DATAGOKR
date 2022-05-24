@@ -1,4 +1,6 @@
-import email
+from pandas import read_csv
+import sqlite3
+
 from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.python import PythonOperator
@@ -45,6 +47,26 @@ def extract(**context):
     logging.info('temporary csv extract end.')
     return csv_temp_path
 
+def transform_load(**context):
+    stdrYear   = str(context['execution_date'].year) 
+    stdrMonth  = str(context['execution_date'].month)
+    stdrMonth  = stdrMonth.rjust(2, '0')
+    path = os.path.join(context['params']['result_path'] , 'trade_info.db')
+    # db init
+    conn = sqlite3.connect(path)
+    
+    # transform csv file
+    logging.info('transform csv file')
+    csv_temp_path = context['ti'].xcom_pull(key='return_value', task_ids='extract')
+    pd = read_csv(csv_temp_path, delimiter='\t')
+    pd["거래금액"] = pd['거래금액'].transform(lambda x : int(x.replace(',' , '')))
+    pd = pd.drop_duplicates()
+    
+    # load into db
+    logging.info('load into db')
+    pd.to_sql(stdrYear+stdrMonth + '_TRADE', conn, index=False, if_exists="replace")
+    return 
+
 with DAG( 
     dag_id = 'APT_Trade_KOR', 
     default_args={
@@ -76,3 +98,10 @@ with DAG(
                 },
         provide_context=True)
         
+    t2 = PythonOperator(
+        task_id='transform_load',
+        python_callable = transform_load,
+        params={
+                  'result_path' : Variable.get("datagokr_output_path"),
+                },
+        provide_context=True)

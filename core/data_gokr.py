@@ -47,6 +47,18 @@ def _getIndvdHousingPriceAttr(
             raise "Check api_token or Http-request url"
     return content
 
+def _ValidationAptTradeDev( content : list ) :
+    rows = []
+    for row in content :
+        new_row = dict()
+        for col in varient.APT_TRADE_DEV:
+            val = row.setdefault(col, None)
+            new_row[col] = val
+        rows.append(new_row)
+    
+    return rows
+
+
 class DataGoKR :
     def __init__(self):
         self.lawd_cd = os.path.join(os.getcwd(), 'thirdparty', 'lawd_cd', 'lawd_cd.csv')
@@ -66,6 +78,7 @@ class DataGoKR :
         iter_cnt = ceil(int(t_cnt) / varient.REQUEST_RECORD )
         for pageNo in range(1, iter_cnt + 1):
             content = _getIndvdHousingPriceAttr(servicekey, pnu, stdrYear, format, str(varient.REQUEST_RECORD), str(pageNo))[main_key]["field"]
+            
             res.extend(content)
         return res
 
@@ -97,8 +110,9 @@ class DataGoKR :
         t_cnt = _getRTMSDataSvcAptTradeDev(servicekey, lawd, deal_ymd, str(1), str(1))["totalCount"]
         iter_cnt = ceil(int(t_cnt) / varient.REQUEST_RECORD )
         for pageNo in range(1, iter_cnt + 1):
-            content = _getRTMSDataSvcAptTradeDev(servicekey, lawd, deal_ymd, str(varient.REQUEST_RECORD), str(pageNo))['items']
-            res.extend(content['item'])
+            content = _getRTMSDataSvcAptTradeDev(servicekey, lawd, deal_ymd, str(varient.REQUEST_RECORD), str(pageNo))['items']['item']
+            content = _ValidationAptTradeDev(content)
+            res.extend(content)
         return res
 
     
