@@ -15,7 +15,7 @@ def _getRTMSDataSvcAptTradeDev(
         content = xmltodict.parse(response.content)
         content = json.dumps(content)
         content = json.loads(content)
-        return content
+        return content["response"]["body"]
     
 def _getIndvdHousingPriceAttr(
     servicekey : str, pnu : str, stdrYear : str, 
@@ -53,6 +53,30 @@ class DataGoKR :
         for pageNo in range(1, iter_cnt + 1):
             content = _getIndvdHousingPriceAttr(servicekey, pnu, stdrYear, format, str(varient.REQUEST_RECORD), str(pageNo))[main_key]["field"]
             res.extend(content)
+        return res
+
+    
+    @classmethod
+    def getRTMSDataSvcAptTradeDev(
+        cls, servicekey : str, lawd : str, 
+        deal_ymd : str
+        ) :
+        """아파트 거래정보 - 지역별 추출
+
+        Args:
+            servicekey (str): data gokr service key
+            lawd (str): 법정동 코드 5자리
+            deal_ymd (str): YYYYMM
+
+        Returns:
+            _type_: https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15057511의 response element (start at 6번째 "거래금액" column) list
+        """
+        res = []
+        t_cnt = _getRTMSDataSvcAptTradeDev(servicekey, lawd, deal_ymd, str(1), str(1))["totalCount"]
+        iter_cnt = ceil(int(t_cnt) / varient.REQUEST_RECORD )
+        for pageNo in range(1, iter_cnt + 1):
+            content = _getRTMSDataSvcAptTradeDev(servicekey, lawd, deal_ymd, str(varient.REQUEST_RECORD), str(pageNo))['items']
+            res.extend(content['item'])
         return res
 
     

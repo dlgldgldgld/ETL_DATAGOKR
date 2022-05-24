@@ -16,9 +16,9 @@ def extract(**context):
     lawd_list  = get_lawd.getlawdlist(input_sido)
     
     for lawd, sido, sigun in lawd_list:
-        res = DataGoKR.getIndvdHousingPriceAttr(
+        res = DataGoKR.getRTMSDataSvcAptTradeDev(
                 servicekey=servicekey, 
-                pnu=lawd, stdrYear=stdrYear, format='json')
+                lawd=lawd, deal_ymd=stdrYear)
         print(stdrYear, sido, sigun, str(len(res)))
         break
 
