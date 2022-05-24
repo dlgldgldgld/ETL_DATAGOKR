@@ -19,7 +19,8 @@ def extract(**context):
         res = DataGoKR.getRTMSDataSvcAptTradeDev(
                 servicekey=servicekey, 
                 lawd=lawd, deal_ymd=stdrYear)
-        print(stdrYear, sido, sigun, str(len(res)))
+        log = f'{stdrYear}, {sido}, {sigun}, len = {str(len(res))}'
+        logging.info(log)
         break
 
 with DAG( 
