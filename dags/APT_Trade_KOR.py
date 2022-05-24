@@ -7,6 +7,8 @@ from core.data_gokr import DataGoKR
 from thirdparty.lawd_cd import get_lawd
 from datetime import datetime, timedelta
 
+import os
+import csv
 import logging
 
 def extract(**context):
@@ -16,16 +18,32 @@ def extract(**context):
 
     servicekey = context['params']['servicekey']
     input_sido = context['params']['sido']
-    lawd_list  = get_lawd.getlawdlist(input_sido)
-
+    csv_temp_path = context['params']['csv_path']
+    csv_temp_path = os.path.join(csv_temp_path, stdrYear + stdrMonth + '_' + input_sido + '.csv')
+    
     logging.info(stdrYear + stdrMonth)
+    logging.info('Extract - getRTMSDataSvcAptTradeDev')
+    
+    rows = []
+    lawd_list  = get_lawd.getlawdlist(input_sido)
     for lawd, sido, sigun in lawd_list:
-        res = DataGoKR.getRTMSDataSvcAptTradeDev(
+        row = DataGoKR.getRTMSDataSvcAptTradeDev(
                 servicekey=servicekey, 
                 lawd=lawd, deal_ymd=stdrYear + stdrMonth)
-        log = f'{stdrYear + stdrMonth}, {sido}, {sigun}, len = {str(len(res))}'
+        rows.extend(row)
+        log = f'{stdrYear + stdrMonth}, {sido}, {sigun}, len = {str(len(row))}'
         logging.info(log)
         break
+
+    logging.info(csv_temp_path)
+    with open(csv_temp_path, 'w', newline='') as w:
+        writer = csv.writer(w)
+        writer.writerow(rows[0].keys())
+        for row in rows:
+            writer.writerow(row.values())
+
+    logging.info('temporary csv extract end.')
+    return csv_temp_path
 
 with DAG( 
     dag_id = 'APT_Trade_KOR', 
@@ -54,6 +72,7 @@ with DAG(
         params={
                   'servicekey' : Variable.get("datagokr_token"),
                   'sido' : Variable.get("datagokr_sido"),
+                  'csv_path' : Variable.get("datagokr_csv_path"),
                 },
         provide_context=True)
         
