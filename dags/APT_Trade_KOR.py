@@ -10,16 +10,20 @@ from datetime import datetime, timedelta
 import logging
 
 def extract(**context):
-    stdrYear   = str(context['execution_date'].year)
+    stdrYear   = str(context['execution_date'].year) 
+    stdrMonth  = str(context['execution_date'].month)
+    stdrMonth  = stdrMonth.rjust(2, '0')
+
     servicekey = context['params']['servicekey']
     input_sido = context['params']['sido']
     lawd_list  = get_lawd.getlawdlist(input_sido)
-    
+
+    logging.info(stdrYear + stdrMonth)
     for lawd, sido, sigun in lawd_list:
         res = DataGoKR.getRTMSDataSvcAptTradeDev(
                 servicekey=servicekey, 
-                lawd=lawd, deal_ymd=stdrYear)
-        log = f'{stdrYear}, {sido}, {sigun}, len = {str(len(res))}'
+                lawd=lawd, deal_ymd=stdrYear + stdrMonth)
+        log = f'{stdrYear + stdrMonth}, {sido}, {sigun}, len = {str(len(res))}'
         logging.info(log)
         break
 

@@ -11,10 +11,17 @@ def _getRTMSDataSvcAptTradeDev(
         ) :
         url = varient.APT_TRADE_DEV_URL
         params ={'serviceKey' : servicekey, 'pageNo' : pageNo, 'numOfRows' : numOfRows, 'LAWD_CD' : lawd, 'DEAL_YMD' : deal_ymd }
-        response = requests.get(url, params=params)
+        try :
+            response = requests.get(url, params=params)
+        except requests.exceptions as e:
+            raise e
+
         content = xmltodict.parse(response.content)
         content = json.dumps(content)
         content = json.loads(content)
+        if "body" not in content["response"].keys():
+            raise "Check api_token or Http-request url"
+
         return content["response"]["body"]
     
 def _getIndvdHousingPriceAttr(
@@ -23,7 +30,11 @@ def _getIndvdHousingPriceAttr(
     ) :
     url = varient.HOUSING_PRICEATTR_URL
     params ={'serviceKey' : servicekey, 'pnu' : pnu, 'stdrYear' : stdrYear, 'format' : format, 'numOfRows' : numOfRows, 'pageNo' : pageNo }
-    response = requests.get(url, params=params)
+    try :
+        response = requests.get(url, params=params)
+    except requests.exceptions as e:
+        raise e
+
     if format == 'json':
         content = json.loads(response.content)
     elif format == 'xml':
@@ -31,6 +42,9 @@ def _getIndvdHousingPriceAttr(
         content = json.dumps(content)
         content = json.loads(content)
         content['response']['field'] = content['response'].pop('fields')['field']
+
+    if "field" not in content["response"].keys():
+            raise "Check api_token or Http-request url"
     return content
 
 class DataGoKR :
