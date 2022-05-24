@@ -82,7 +82,7 @@ with DAG(
     ## APT_Trade_KOR.py
     - Purpose : 월간 아파트 거래 정보를 추출하는 dag.
     - input  : DATA.go.kr - 국토교통부_아파트매매 실거래 상세 자료
-    - output : Redshift Table
+    - output : SQLITE Table
     '''
 ) as dag:
     
