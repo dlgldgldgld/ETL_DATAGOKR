@@ -1,13 +1,14 @@
+from typing import Final
 
 # RECORD COUNT
-REQUEST_RECORD = 100
+REQUEST_RECORD : Final = 100
 
 # URLS
-APT_TRADE_DEV_URL = 'http://openapi.molit.go.kr/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTradeDev'
-HOUSING_PRICEATTR_URL = 'http://apis.data.go.kr/1611000/nsdi/IndvdHousingPriceService/attr/getIndvdHousingPriceAttr'
+APT_TRADE_DEV_URL : Final= 'http://openapi.molit.go.kr/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTradeDev'
+HOUSING_PRICEATTR_URL : Final = 'http://apis.data.go.kr/1611000/nsdi/IndvdHousingPriceService/attr/getIndvdHousingPriceAttr'
 
 # SCHEMAS
-APT_TRADE_DEV = [
+APT_TRADE_DEV : Final = [
     '거래금액', '거래유형', '건축년도', '년',
     '도로명', '도로명건물본번호코드', '도로명건물부번호코드' ,'도로명시군구코드',
     '도로명일련번호코드', '도로명지상지하코드', '도로명코드' , '법정동',
