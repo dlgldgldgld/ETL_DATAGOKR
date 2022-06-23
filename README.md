@@ -18,7 +18,8 @@ git clone https://github.com/dlgldgldgld/ETL_DATAGOKR.git\
 cp -r ETL_DATAGOKR/dags/* airflow/dags
 cp -r ETL_DATAGOKR/const airflow/dags
 cp -r ETL_DATAGOKR/core airflow/dags
-cp -r ETL_DATAGOKR/thirdparty airflow/dags
+cp -r ETL_DATAGOKR/statistics airflow/dags
+cp -r ETL_DATAGOKR/font airflow/dags
 ```
 
 ## 부산광역시 4-5월 동향
