@@ -5,9 +5,9 @@ class base_summary(metaclass=ABCMeta):
     :param connection : The connecttion of main DB. it must be opened before using summary table.
     :type connection : db_connect
     """
-    def __init__(self, connection, query):
+    def __init__(self, connection):
         self.conn  = connection
-        self.query = query
+        self.query = None
 
     @abstractmethod
     def execute(self) -> list():

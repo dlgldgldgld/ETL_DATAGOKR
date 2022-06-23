@@ -3,7 +3,8 @@ from base_summary import base_summary
 class table_summary(base_summary):
     def __init__(self, conn, query, table_name):
         self.table_name = table_name
-        super().__init__(conn, query)
+        self.query = query
+        super().__init__(conn)
 
     def execute(self):
         curr = self.conn.cursor()
