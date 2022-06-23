@@ -4,9 +4,11 @@ import sqlite3
 from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.python import PythonOperator
+from airflow.operators.email import EmailOperator
 from sqlalchemy import true
 
 from core.data_gokr import DataGoKR
+from statistics.image_summary import image_summary
 from thirdparty.lawd_cd import get_lawd
 from datetime import datetime, timedelta, timezone
 
@@ -66,9 +68,7 @@ def transform_load(**context):
     curr.execute(f'''
         DELETE FROM TRADEINFO WHERE created_date = "{created_date}"
     ''')
-
     conn.commit()
-
 
     # transform csv file
     logging.info('transform csv file')
@@ -82,8 +82,30 @@ def transform_load(**context):
         # load into db
         logging.info('load into db')
         pd.to_sql('TRADEINFO', conn, index=False, if_exists="append")
-    
-    return 
+
+    conn.close()
+    return path
+
+def make_image(**context):
+    sqlite_path = context['ti'].xcom_pull(key='return_value', task_ids='transform_load')
+
+    conn = sqlite3.connect(sqlite_path)
+
+    from dateutil.relativedelta import relativedelta
+    execute_date = context['execution_date']
+    date_2 = datetime(year=execute_date.year, month=execute_date.month, day=1, hour=6, minute=0,second=0)
+    date_1 = date_2 + relativedelta(months=-1)
+    img1_path = os.path.join(context['params']['temp_path'] , 'image1.png')
+    img2_path = os.path.join(context['params']['temp_path'] , 'image2.png')
+
+    img1 = image_summary(conn, "거래금액", date_1, date_2, img1_path)
+    img2 = image_summary(conn, "거래수량", date_1, date_2, img2_path)
+
+    img1.execute()
+    img2.execute()
+
+    conn.close()
+    return [img1_path, img2_path]
 
 with DAG( 
     dag_id = 'APT_Trade_KOR', 
@@ -123,5 +145,25 @@ with DAG(
                   'result_path' : Variable.get("datagokr_output_path"),
                 },
         provide_context=True)
-    
+
+    t3 = PythonOperator(
+        task_id='make_image',
+        python_callable = make_image,
+        params={ 
+            'temp_path' : Variable.get("datagokr_csv_path"),
+        },
+        provide_context=True)
+
+
     t1 >> t2
+    t2 >> t3
+
+if __name__ == "__main__":
+    from airflow.utils.state import State
+    KST = timezone(timedelta(hours=9))
+    start_date=datetime(year=2022, month=5, day=1, hour=21, minute=0, second=0, tzinfo=KST)
+    end_date=datetime(year=2022, month=6, day=1, hour=21, minute=0, second=0, tzinfo=KST)
+    dag.clear(task_ids=['make_image'])
+    dag.run(start_date = start_date, end_date = end_date, ignore_task_deps=True)
+
+    
