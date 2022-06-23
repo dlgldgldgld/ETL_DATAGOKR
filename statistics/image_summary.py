@@ -1,13 +1,13 @@
-from base_summary import base_summary
+from statistics.base_summary import base_summary
 from matplotlib import rc, font_manager
 from datetime import datetime
 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import os
 
-font_manager.FontProperties(fname='font/malgun.ttf').get_name()
-rc('font', family='Malgun Gothic', size=8)
+rc('font', family='NanumGothicCoding', size=8)
 
 @ticker.FuncFormatter
 def million_formatter(x, pos):
