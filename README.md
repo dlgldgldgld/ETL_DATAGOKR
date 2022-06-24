@@ -14,12 +14,16 @@
 # [ Temporary memo ]
 ## DAG Deployment
 ```bash
+# 최초에 git clone
 git clone https://github.com/dlgldgldgld/ETL_DATAGOKR.git\
+
+# 이후부터는 pull로 update
+git pull
+
+# 아래 copy 명령어 수행.
 cp -r ETL_DATAGOKR/dags/* airflow/dags
 cp -r ETL_DATAGOKR/const airflow/dags
 cp -r ETL_DATAGOKR/core airflow/dags
-cp -r ETL_DATAGOKR/statistics airflow/dags
-cp -r ETL_DATAGOKR/font airflow/dags
 ```
 
 ## 부산광역시 4-5월 동향
