@@ -1,4 +1,4 @@
-from base_summary import base_summary
+from core.statistics.base_summary import base_summary
 
 class table_summary(base_summary):
     def __init__(self, conn, query, table_name):

@@ -1,4 +1,4 @@
-from statistics.base_summary import base_summary, summary_exception
+from core.statistics.base_summary import base_summary, summary_exception
 import sqlite3
 
 class statistic_mng():

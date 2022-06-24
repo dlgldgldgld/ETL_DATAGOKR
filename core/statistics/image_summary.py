@@ -1,11 +1,10 @@
-from statistics.base_summary import base_summary
+from core.statistics.base_summary import base_summary
 from matplotlib import rc, font_manager
 from datetime import datetime
 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-import os
 
 rc('font', family='NanumGothicCoding', size=8)
 
