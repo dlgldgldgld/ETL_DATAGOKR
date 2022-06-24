@@ -4,11 +4,9 @@ import sqlite3
 from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.python import PythonOperator
-from airflow.operators.email import EmailOperator
-from sqlalchemy import true
-
+from airflow.operators.email  import EmailOperator
 from core.data_gokr import DataGoKR
-from statistics.image_summary import image_summary
+
 from thirdparty.lawd_cd import get_lawd
 from datetime import datetime, timedelta, timezone
 
@@ -87,6 +85,8 @@ def transform_load(**context):
     return path
 
 def make_image(**context):
+    from statistics.image_summary import image_summary
+
     sqlite_path = context['ti'].xcom_pull(key='return_value', task_ids='transform_load')
 
     conn = sqlite3.connect(sqlite_path)
@@ -95,8 +95,8 @@ def make_image(**context):
     execute_date = context['execution_date']
     date_2 = datetime(year=execute_date.year, month=execute_date.month, day=1, hour=6, minute=0,second=0)
     date_1 = date_2 + relativedelta(months=-1)
-    img1_path = os.path.join(context['params']['temp_path'] , 'image1.png')
-    img2_path = os.path.join(context['params']['temp_path'] , 'image2.png')
+    img1_path = os.path.join(context['params']['temp_path'] , '부동산_거래금액.png')
+    img2_path = os.path.join(context['params']['temp_path'] , '부동산_거래수량.png')
 
     img1 = image_summary(conn, "거래금액", date_1, date_2, img1_path)
     img2 = image_summary(conn, "거래수량", date_1, date_2, img2_path)
@@ -107,10 +107,12 @@ def make_image(**context):
     conn.close()
     return [img1_path, img2_path]
 
+
+
 with DAG( 
     dag_id = 'APT_Trade_KOR', 
     default_args={
-        'email' : ['shin12272014@gmail.com'],
+        'email' : ['hsshin.airflow@gmail.com'],
         'email_on_failure' : True,
         'email_on_retry'   : False,
         'retries' : 1,
@@ -154,16 +156,34 @@ with DAG(
         },
         provide_context=True)
 
+    execution_date = "{{ds}}"
+    file_path = os.path.join(Variable.get("datagokr_output_path"))
+
+    def __get_all_filepath(path):
+        filepaths = []
+        for dirpath, dirname, filelists in os.walk(path):
+            for filename in filelists:
+                filepaths.append(os.path.join(dirpath, filename))
+        return filepaths
+
+    email = EmailOperator(
+        task_id='send_email',
+        to='shin12272014@gmail.com',
+        subject='부산광역시, 서울시 부동산 거래 정보_' + execution_date,
+        html_content="""
+        <h3>부동산 거래 정보 메일 알람</h3>
+        본 메일은 매월 말일에 전송되는 메일입니다. <br>
+        이미지를 통해 바로 이전달과 이번달 부동산 거래 수량 및 평균 가격을 확인하세요. <br>
+        <br>
+        세부 거래 내용은 db 파일을 참조하세요.
+        <br>
+        """,
+        files=__get_all_filepath(file_path)
+    )
 
     t1 >> t2
     t2 >> t3
+    t3 >> email
 
-if __name__ == "__main__":
-    from airflow.utils.state import State
-    KST = timezone(timedelta(hours=9))
-    start_date=datetime(year=2022, month=5, day=1, hour=21, minute=0, second=0, tzinfo=KST)
-    end_date=datetime(year=2022, month=6, day=1, hour=21, minute=0, second=0, tzinfo=KST)
-    dag.clear(task_ids=['make_image'])
-    dag.run(start_date = start_date, end_date = end_date, ignore_task_deps=True)
 
     
