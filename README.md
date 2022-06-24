@@ -1,10 +1,10 @@
 # ETL_DATAGOKR
 
-# 개요
+## 개요
 - 최근에 집값이 떨어진다는 소문이 돌고있다. 그렇다면 내가 할 일을 슬슬 각을보면서 간을 보는 것.
 - DATA.GO.KR에서 제공해주는 부동산 거래 정보를 사용하여 동향을 파악하자.
 
-# DAG Deployment 절차
+## DAG Deployment 절차
 ```bash
 # 최초에 git clone
 git clone https://github.com/dlgldgldgld/ETL_DATAGOKR.git\
@@ -18,7 +18,7 @@ cp -r ETL_DATAGOKR/const airflow/dags
 cp -r ETL_DATAGOKR/core airflow/dags
 ```
 
-# RESULT
+## RESULT
 1. 매월 말일 Airflow를 통해 자동으로 사용자들에게 메일 전송.
 ![image](https://user-images.githubusercontent.com/18378009/175486494-76e85f67-2e5b-478c-b51b-7696f272519a.png)
 
