@@ -85,7 +85,7 @@ def transform_load(**context):
     return path
 
 def make_image(**context):
-    from statistics.image_summary import image_summary
+    from core.statistics.image_summary import image_summary
 
     sqlite_path = context['ti'].xcom_pull(key='return_value', task_ids='transform_load')
 
@@ -95,8 +95,16 @@ def make_image(**context):
     execute_date = context['execution_date']
     date_2 = datetime(year=execute_date.year, month=execute_date.month, day=1, hour=6, minute=0,second=0)
     date_1 = date_2 + relativedelta(months=-1)
-    img1_path = os.path.join(context['params']['temp_path'] , '부동산_거래금액.png')
-    img2_path = os.path.join(context['params']['temp_path'] , '부동산_거래수량.png')
+
+    temp_path = os.path.join(context['params']['temp_path'], execute_date)
+    try:
+        if not os.path.exists(temp_path):
+            os.makedirs(temp_path)
+    except OSError:
+        print('Error Creating direcotry', temp_path)
+
+    img1_path = os.path.join(temp_path, '부동산_거래금액.png')
+    img2_path = os.path.join(temp_path, '부동산_거래수량.png')
 
     img1 = image_summary(conn, "거래금액", date_1, date_2, img1_path)
     img2 = image_summary(conn, "거래수량", date_1, date_2, img2_path)
@@ -120,7 +128,7 @@ with DAG(
     },
     start_date=datetime(2021, 5, 1, 6, 0, 0),
     schedule_interval='0 6 L * *',
-    catchup = True,
+    catchup = False,
     tags = ['incremental update', 'life'],
     doc_md = '''
     ## APT_Trade_KOR.py
@@ -148,16 +156,17 @@ with DAG(
                 },
         provide_context=True)
 
+
+    execution_date = "{{ds}}"
+    img_file_path = os.path.join(Variable.get("datagokr_output_path"), execution_date)
+
     t3 = PythonOperator(
         task_id='make_image',
         python_callable = make_image,
         params={ 
-            'temp_path' : Variable.get("datagokr_csv_path"),
+            'temp_path' : img_file_path,
         },
         provide_context=True)
-
-    execution_date = "{{ds}}"
-    file_path = os.path.join(Variable.get("datagokr_output_path"))
 
     def __get_all_filepath(path):
         filepaths = []
@@ -178,7 +187,7 @@ with DAG(
         세부 거래 내용은 db 파일을 참조하세요.
         <br>
         """,
-        files=__get_all_filepath(file_path)
+        files=__get_all_filepath(img_file_path)
     )
 
     t1 >> t2
