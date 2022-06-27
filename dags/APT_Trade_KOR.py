@@ -96,7 +96,7 @@ def make_image(**context):
     date_2 = datetime(year=execute_date.year, month=execute_date.month, day=1, hour=6, minute=0,second=0)
     date_1 = date_2 + relativedelta(months=-1)
 
-    temp_path = os.path.join(context['params']['temp_path'], execute_date)
+    temp_path = os.path.join(context['params']['temp_path'], execute_date.strftime('%Y-%m-%d'))
     try:
         if not os.path.exists(temp_path):
             os.makedirs(temp_path)
@@ -114,7 +114,6 @@ def make_image(**context):
 
     conn.close()
     return [img1_path, img2_path]
-
 
 
 with DAG( 
@@ -158,7 +157,7 @@ with DAG(
 
 
     execution_date = "{{ds}}"
-    img_file_path = os.path.join(Variable.get("datagokr_output_path"), execution_date)
+    img_file_path = Variable.get("datagokr_output_path")
 
     t3 = PythonOperator(
         task_id='make_image',
@@ -187,7 +186,7 @@ with DAG(
         세부 거래 내용은 db 파일을 참조하세요.
         <br>
         """,
-        files=__get_all_filepath(img_file_path)
+        files=__get_all_filepath(img_file_path + '/' + execution_date)
     )
 
     t1 >> t2
