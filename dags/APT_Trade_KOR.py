@@ -96,7 +96,7 @@ def make_image(**context):
     date_2 = datetime(year=execute_date.year, month=execute_date.month, day=1, hour=6, minute=0,second=0)
     date_1 = date_2 + relativedelta(months=-1)
 
-    temp_path = os.path.join(context['params']['temp_path'], execute_date.strftime('%Y-%m-%d'))
+    temp_path = os.path.join(context['params']['temp_path'], context['ds'])
     try:
         if not os.path.exists(temp_path):
             os.makedirs(temp_path)
@@ -176,7 +176,7 @@ with DAG(
 
     email = EmailOperator(
         task_id='send_email',
-        to='shin12272014@gmail.com',
+        to=['shin12272014@gmail.com'],
         subject='부산광역시, 서울시 부동산 거래 정보_' + execution_date,
         html_content="""
         <h3>부동산 거래 정보 메일 알람</h3>
